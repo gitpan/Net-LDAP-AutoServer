@@ -1,5 +1,8 @@
 Revision history for Net-LDAP-AutoServer
 
+0.1.0	2010-02-13/18:55
+		-Add 'byDNS', which supports SRV record usage.
+
 0.0.0	2009-12-05/12:40
 		-Initial release.
 

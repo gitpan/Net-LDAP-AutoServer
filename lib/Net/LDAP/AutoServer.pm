@@ -4,6 +4,7 @@ use warnings;
 use strict;
 use Sys::Hostname;
 use Net::LDAP;
+use Net::DNS::RR::SRV::Helper;
 
 =head1 NAME
 
@@ -11,11 +12,11 @@ Net::LDAP::AutoServer - Automated LDAP server choosing.
 
 =head1 VERSION
 
-Version 0.0.0
+Version 0.1.0
 
 =cut
 
-our $VERSION = '0.0.0';
+our $VERSION = '0.1.0';
 
 
 =head1 SYNOPSIS
@@ -35,7 +36,7 @@ our $VERSION = '0.0.0';
 This is the methods to use to for getting the information.
 
 It is taken in a camma seperated list with the default being
-'hostname,devldap,env,user'.
+'hostname,dns,devldap,env,user'.
 
 The available values are listed below.
 
@@ -69,7 +70,7 @@ sub new{
 	if (defined($args{methods})) {
 		$self->{methods}=$args{methods};
 	}else {
-		$self->{methods}='hostname,devldap,env,user';
+		$self->{methods}='hostname,dns,devldap,env,user';
 	}
 
 	#runs through the methodes and finds one to use
@@ -84,6 +85,11 @@ sub new{
 		#handles it via the env method
 		if ($split[$splitInt] eq "env") {
 			$self->byEnv();
+		}
+
+		#handles it if it if using the DNS method
+		if ($split[$splitInt] eq "dns") {
+			$self->byDNS();
 		}
 
 		#handles it if it if using the hostname method
@@ -182,6 +188,74 @@ sub byDevLDAP{
 	return 1;
 }
 
+=head2 byDNS
+
+This only populates the server field.
+
+This will run s/^[0-9a-zA-Z\-\_]*\./ldap./ over
+the hostname then try to connect to it.
+
+If it can't lookup the hostname or connect,
+it returns undef.
+
+Once connected, it will check to see if it is
+possible to start TLS.
+
+=head3 POPULATES
+
+    startTLS
+    server
+    port
+
+=cut
+
+sub byDNS{
+	my $self=$_[0];
+
+	my $hostname=hostname;
+
+	$hostname=~s/^[0-9a-zA-Z\-\_]*\./_ldap._tcp./;
+
+	#gets a list of SRV records for the hostname
+	my $res=Net::DNS::Resolver->new;
+	my $query=$res->query($hostname, "SRV");
+	my @records=$query->answer;
+
+	#sorts the records
+	my @orderedSRV=SRVorder(\@records);
+
+	#make sure we have one
+	if (!defined($orderedSRV[0])) {
+		return undef;
+	}
+
+	#searches each one for one that works
+	my $int=0;
+	while (defined($orderedSRV[$int])) {
+		my $ldap=Net::LDAP->new($orderedSRV[$int]->{server}, port=>$orderedSRV[$int]->{port} );
+		
+		#process it, if it worked
+		if ($ldap) {
+			my $mesg=$ldap->start_tls;
+			
+			if (!$mesg->is_error) {
+				$self->{startTLS}=1;
+			}else {
+				$self->{startTLS}=undef;
+			}
+			
+			$self->{server}=$orderedSRV[$int]->{server};
+			$self->{port}=$orderedSRV[$int]->{port};
+
+			return 1;
+		}
+
+		$int++;
+	}
+
+	return undef;
+}
+
 =head2 byEnv
 
 This will populate as much as possible using enviromental
@@ -277,6 +351,7 @@ sub byHostname{
 		$self->{startTLS}=undef;
 	}
 
+	$self->{port}='389';
 	$self->{server}=$hostname;
 
 	return 1;
