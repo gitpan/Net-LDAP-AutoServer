@@ -4,6 +4,7 @@ use warnings;
 use strict;
 use Sys::Hostname;
 use Net::LDAP;
+use Net::DNS::Resolver;
 use Net::DNS::RR::SRV::Helper;
 
 =head1 NAME
@@ -12,11 +13,11 @@ Net::LDAP::AutoServer - Automated LDAP server choosing.
 
 =head1 VERSION
 
-Version 0.1.0
+Version 0.1.1
 
 =cut
 
-our $VERSION = '0.1.0';
+our $VERSION = '0.1.1';
 
 
 =head1 SYNOPSIS
@@ -219,6 +220,12 @@ sub byDNS{
 	#gets a list of SRV records for the hostname
 	my $res=Net::DNS::Resolver->new;
 	my $query=$res->query($hostname, "SRV");
+
+	#makes sure something was found
+	if (!defined($query)) {
+		return undef
+	}
+
 	my @records=$query->answer;
 
 	#sorts the records
