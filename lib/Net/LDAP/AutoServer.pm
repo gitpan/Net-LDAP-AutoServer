@@ -13,11 +13,11 @@ Net::LDAP::AutoServer - Automated LDAP server choosing.
 
 =head1 VERSION
 
-Version 0.1.1
+Version 0.2.0
 
 =cut
 
-our $VERSION = '0.1.1';
+our $VERSION = '0.2.0';
 
 
 =head1 SYNOPSIS
@@ -135,7 +135,7 @@ or does not resit.
 sub byDevLDAP{
 	my $self=$_[0];
 
-	if (! -d '/dev/ldap/') {
+	if (! -d '/dev/ldap/server') {
 		return undef;
 	}
 
@@ -263,6 +263,88 @@ sub byDNS{
 	return undef;
 }
 
+=head2 byEESDPenv
+
+This will populate as much as possible using enviromental
+variables.
+
+=head3 ENVIROMENTAL VARIABLES
+
+EESDP-BindDN
+EESDP-CAfile
+EESDP-CApath
+EESDP-CheckCRL
+EESDP-ClientCert
+EESDP-ClientKey
+EESDP-Port
+EESDP-Server
+EESDP-StartTLS
+
+=head3 POPULATES
+
+    bind
+    CAfile
+    CApath
+    checkCRL
+    clientCert
+    clientKey
+    port
+    server
+    startTLS
+
+=cut
+
+sub byEESDPenv{
+	my $self=$_[0];
+
+	#sets the bind, if it is defined
+	if (defined($ENV{'EESDP-BindDN'})) {
+		$self->{bind}=$ENV{'EESDP-BindDN'};
+	}
+
+	#sets the CAfile, if it is defined
+	if (defined($ENV{'EESDP-CAfile'})) {
+		$self->{CAfile}=$ENV{'EESDP-CAfile'};
+	}
+
+	#sets the CApath, if it is defined
+	if (defined($ENV{'EESDP-CApath'})) {
+		$self->{CApath}=$ENV{'EESDP-CApath'};
+	}
+
+	#sets the checkCRL, if it is defined
+	if (defined($ENV{'EESDP-CheckCRL'})) {
+		$self->{clientCert}=$ENV{'EESDP-checkCRL'};
+	}
+
+	#sets the clientCert, if it is defined
+	if (defined($ENV{'EESDP-ClientCert'})) {
+		$self->{clientCert}=$ENV{'EESDP-ClientCert'};
+	}
+
+	#sets the clientKey, if it is defined
+	if (defined($ENV{'EESDP-ClientKey'})) {
+		$self->{clientKey}=$ENV{'EESDP-ClientKey'};
+	}
+
+	#sets the port, if it is defined
+	if (defined($ENV{'EESDP-Port'})) {
+		$self->{port}=$ENV{'EESDP-port'};
+	}
+
+	#sets the server, if it is defined
+	if (defined($ENV{'EESDP-Server'})) {
+		$self->{server}=$ENV{'EESDP-Server'};
+	}
+
+	#sets the startTLS, if it is defined
+	if (defined($ENV{'EESDP-StartTLS'})) {
+		$self->{startTLS}=$ENV{'EESDP-StartTLS'};
+	}
+
+	return 1;
+}
+
 =head2 byEnv
 
 This will populate as much as possible using enviromental
@@ -278,6 +360,7 @@ variables.
     Net::LDAP::AutoServer-clientkey
     Net::LDAP::AutoServer-port
     Net::LDAP::AutoServer-server
+    Net::LDAP::AutoServer-startTLS
 
 =head3 POPULATES
 
@@ -289,6 +372,7 @@ variables.
     clientKey
     port
     server
+    startTLS
 
 =cut
 

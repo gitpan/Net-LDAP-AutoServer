@@ -1,5 +1,12 @@
 Revision history for Net-LDAP-AutoServer
 
+0.2.0	2010-05-11/19:00
+		-Add further EESDP environmental support.
+
+0.1.2	2010-04-30/02:20
+		-Change the /dev/ldap check for to use '/dev/ldap/server'
+			instead of '/dev/ldap/'.
+
 0.1.1	2010-02-19/07:30
 		-Fix usage 'Net::DNS::Resolver'.
 
