@@ -16,7 +16,7 @@ WriteMakefile(
 							'Sys::Hostname'=>0,
 							'Net::LDAP'=>0,
 							'Net::DNS'=>0,
-							'Net-DNS-RR-SRV-Helper'=>0,
+							'Net::DNS::RR::SRV::Helper'=>0,
 							},
 			  dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
 			  clean               => { FILES => 'Net-LDAP-AutoServer-*' },
